@@ -1,0 +1,2333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎨 Plataforma Cultural Oficial - Gestión de Espacios Artísticos</title>
+<meta name="description" content="Plataforma para artistas - Reserva espacios culturales, gestiona tus eventos y conecta con la comunidad artística">
+<meta name="keywords" content="artistas, espacios culturales, reservas, arte, cultura, eventos">
+<meta name="author" content="Cristian Martín Carloz Torres">
+
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#2c3e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plataforma Cultural">
+
+<!-- Open Graph Meta Tags -->
+<meta property="og:title" content="Plataforma de Espacios Artísticos">
+<meta property="og:description" content="Reserva espacios culturales y gestiona tus eventos artísticos">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tu-dominio-firebase.web.app">
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  /* Header con autenticación */
+  .auth-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 15px 25px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    position: relative;
+  }
+  
+  .auth-header.logged-out {
+    justify-content: center;
+  }
+  
+  .logo {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .platform-badge {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  
+  .user-name {
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .auth-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+  
+  .btn-secondary {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .btn-secondary:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+  }
+  
+  .btn-logout {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+  }
+  
+  .btn-logout:hover {
+    background: #dc3545;
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  /* Pantallas de autenticación */
+  .auth-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+  }
+  
+  .auth-modal {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    animation: modalSlideIn 0.3s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .auth-modal h2 {
+    margin: 0 0 30px 0;
+    color: #333;
+    font-size: 1.8rem;
+  }
+  
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-group {
+    text-align: left;
+    position: relative;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 600;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .form-group input.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+  }
+  
+  .form-group input.success {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+  }
+  
+  .form-validation {
+    font-size: 12px;
+    margin-top: 5px;
+    min-height: 16px;
+  }
+  
+  .form-validation.error {
+    color: #dc3545;
+  }
+  
+  .form-validation.success {
+    color: #28a745;
+  }
+  
+  .password-strength {
+    margin-top: 8px;
+  }
+  
+  .strength-bar {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 5px;
+  }
+  
+  .strength-fill {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+  }
+  
+  .strength-weak { background: #dc3545; width: 25%; }
+  .strength-fair { background: #ffc107; width: 50%; }
+  .strength-good { background: #17a2b8; width: 75%; }
+  .strength-strong { background: #28a745; width: 100%; }
+  
+  .strength-text {
+    font-size: 11px;
+    color: #666;
+  }
+  
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+  
+  .remember-me input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+  }
+  
+  .auth-switch {
+    margin-top: 20px;
+    color: #666;
+    line-height: 1.5;
+  }
+  
+  .auth-switch a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .auth-switch a:hover {
+    text-decoration: underline;
+  }
+  
+  .forgot-password {
+    text-align: right;
+    margin-top: 5px;
+  }
+  
+  .forgot-password a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 13px;
+  }
+  
+  .forgot-password a:hover {
+    text-decoration: underline;
+  }
+  
+  .auth-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+    color: #667eea;
+    font-size: 14px;
+  }
+  
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e0e0e0;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .auth-success {
+    background: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 14px;
+    display: none;
+  }
+  
+  .auth-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 14px;
+    display: none;
+  }
+  
+  /* Estilos para el modal de privacidad */
+  .privacy-modal {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 95%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .privacy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px 15px 30px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  
+  .privacy-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.6rem;
+  }
+  
+  .close-privacy {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  
+  .close-privacy:hover {
+    background: #dc3545;
+    color: white;
+  }
+  
+  .privacy-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 30px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .privacy-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .privacy-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  
+  .privacy-section h3 {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #667eea;
+  }
+  
+  .privacy-section p {
+    margin: 0 0 12px 0;
+    color: #555;
+  }
+  
+  .privacy-section ul {
+    margin: 10px 0;
+    padding-left: 20px;
+  }
+  
+  .privacy-section li {
+    margin-bottom: 8px;
+    color: #555;
+  }
+  
+  .consent-options {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border-left: 4px solid #667eea;
+  }
+  
+  .consent-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  
+  .consent-options input[type="checkbox"] {
+    margin: 0;
+  }
+  
+  .privacy-footer {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .privacy-footer p {
+    margin: 5px 0;
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .privacy-actions {
+    padding: 20px 30px;
+    border-top: 2px solid #f0f0f0;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+  
+  .privacy-actions .btn {
+    min-width: 120px;
+  }
+  
+  /* Dashboard personal - más discreto */
+  .user-dashboard {
+    display: none;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .stat-number {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 3px;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+  
+  .user-reservations {
+    margin-top: 15px;
+  }
+  
+  .user-reservations h4 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1rem;
+  }
+  
+  .reservation-item {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid #28a745;
+    transition: transform 0.2s ease;
+    font-size: 0.85rem;
+  }
+  
+  .reservation-item:hover {
+    transform: translateX(3px);
+  }
+  
+  .reservation-item.past {
+    border-left-color: #6c757d;
+    opacity: 0.7;
+  }
+  
+  /* Estilos existentes del sistema principal */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .main-content {
+    flex: 1;
+  }
+  
+  .sidebar {
+    width: 320px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  
+  .sidebar h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 1.3rem;
+    text-align: center;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
+  }
+  
+  .online-indicator {
+    font-size: 11px;
+    color: #28a745;
+    text-align: center;
+    margin: 0 0 10px 0;
+    padding: 6px;
+    background: #d4edda;
+    border-radius: 6px;
+    border-left: 3px solid #28a745;
+  }
+  
+  .place-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid #667eea;
+  }
+  
+  .place-item.available {
+    background: #d4edda;
+    border-left-color: #28a745;
+  }
+  
+  .place-item.available:hover {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  }
+  
+  .place-item.occupied {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+    cursor: default;
+  }
+  
+  .place-item.occupied:hover {
+    background: #f5c6cb;
+  }
+  
+  .place-number {
+    width: 30px;
+    height: 30px;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  
+  .place-item.available .place-number {
+    background: linear-gradient(135deg, #28a745, #20c997);
+  }
+  
+  .place-item.occupied .place-number {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+  }
+  
+  .place-info {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  
+  .place-name {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  
+  .place-details {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .place-details.occupied {
+    color: #721c24;
+  }
+  
+  .cancel-btn, .release-btn {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    padding: 6px 8px;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .release-btn {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    margin-left: 4px;
+  }
+  
+  .cancel-btn:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.1);
+  }
+  
+  .release-btn:hover {
+    background: #28a745;
+    color: white;
+    transform: scale(1.1);
+  }
+  
+  h1 {
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  #mapa {
+    position: relative;
+    width: 100%;
+    max-width: 515px;
+    margin: 30px auto 0 auto;
+    background: url('https://i.imgur.com/kr5DBFx.jpg') no-repeat center center;
+    background-size: cover;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    height: 620px;
+    overflow: hidden;
+  }
+  
+  .map-background {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    position: relative;
+  }
+  
+  /* Formulario de reserva */
+  #formulario {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    display: none;
+    z-index: 1000;
+    min-width: 400px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  #formulario h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+  
+  #formulario label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 600;
+  }
+  
+  #formulario input, #formulario textarea, #formulario select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 15px;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+  }
+  
+  #formulario input:focus, #formulario textarea:focus, #formulario select:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+  
+  #formulario input[readonly] {
+    background-color: #f5f5f5;
+    color: #666;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  #formulario button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    z-index: 999;
+  }
+  
+  /* Mensaje de login requerido */
+  .login-required {
+    text-align: center;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin: 20px auto;
+    max-width: 600px;
+  }
+  
+  .login-required h2 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .login-required p {
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.6;
+  }
+  
+  .login-required ul {
+    text-align: left;
+    max-width: 350px;
+    margin: 0 auto 30px auto;
+  }
+  
+  .login-required li {
+    margin-bottom: 8px;
+    color: #555;
+  }
+  
+  .welcome-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .footer p {
+    color: white;
+    margin: 5px 0;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    body {
+      padding: 10px;
+    }
+    
+    .container {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .sidebar {
+      width: 100%;
+      order: 2;
+    }
+    
+    .main-content {
+      order: 1;
+      width: 100%;
+    }
+    
+    .auth-header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+    
+    .auth-header.logged-out {
+      flex-direction: row;
+    }
+    
+    .user-info {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .auth-modal {
+      padding: 30px 20px;
+      margin: 20px;
+    }
+    
+    .dashboard-stats {
+      grid-template-columns: 1fr;
+    }
+    
+    #mapa {
+      height: 50vh;
+      min-height: 300px;
+    }
+    
+    .privacy-modal {
+      width: 98%;
+      max-height: 95vh;
+    }
+    
+    .privacy-header {
+      padding: 20px 15px 10px 15px;
+    }
+    
+    .privacy-header h2 {
+      font-size: 1.3rem;
+    }
+    
+    .privacy-content {
+      padding: 15px;
+      font-size: 13px;
+    }
+    
+    .privacy-section h3 {
+      font-size: 1rem;
+    }
+    
+    .privacy-actions {
+      padding: 15px;
+      flex-direction: column;
+    }
+    
+    .privacy-actions .btn {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    
+
+    
+    #formulario {
+      min-width: auto;
+      width: 95%;
+      padding: 20px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .auth-header {
+      padding: 12px 15px;
+    }
+    
+    .logo {
+      font-size: 1rem;
+    }
+    
+    .btn {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    
+    h1 {
+      font-size: 1.5rem;
+    }
+    
+    .login-required {
+      padding: 25px 20px;
+    }
+    
+    .login-required ul {
+      max-width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header con autenticación -->
+<div class="auth-header" id="authHeader">
+  <div class="logo">
+    🎨 Plataforma Cultural
+    <span class="platform-badge">ONLINE</span>
+  </div>
+  
+  <!-- Botones para usuarios no autenticados -->
+  <div class="auth-buttons" id="guestButtons">
+    <button class="btn btn-secondary" onclick="showLogin()">🔐 Iniciar Sesión</button>
+    <button class="btn btn-primary" onclick="showRegister()">📝 Registrarse</button>
+  </div>
+  
+  <!-- Info para usuarios autenticados -->
+  <div class="user-info" id="userInfo" style="display: none;">
+    <div class="user-avatar" id="userAvatar">U</div>
+    <div>
+      <div class="user-name" id="userName">Usuario</div>
+      <div style="font-size: 12px; color: #666;" id="userEmail">email@ejemplo.com</div>
+    </div>
+    <div class="auth-buttons">
+      <button class="btn btn-secondary" onclick="showUserDashboard()">📊 Mi Panel</button>
+      <button class="btn btn-logout" onclick="logout()">🚪 Salir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard personal del usuario -->
+<div class="user-dashboard" id="userDashboard">
+  <h4 style="margin: 0 0 15px 0; color: #333; font-size: 1.1rem; text-align: center;">📊 Mi Panel Personal</h4>
+  
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <div class="stat-number" id="userActiveReservations">0</div>
+      <div class="stat-label">Reservas Activas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="userTotalReservations">0</div>
+      <div class="stat-label">Total Reservas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="userCompletedEvents">0</div>
+      <div class="stat-label">Eventos Completados</div>
+    </div>
+  </div>
+  
+  <div class="user-reservations">
+    <h4>🎨 Mis Reservas Activas</h4>
+    <div id="userReservationsList">
+      <p style="text-align: center; color: #666; font-style: italic;">No tienes reservas activas</p>
+    </div>
+  </div>
+  
+  <div style="text-align: center; margin-top: 15px;">
+    <button class="btn btn-secondary" onclick="hideUserDashboard()" style="padding: 6px 12px; font-size: 12px;">❌ Cerrar</button>
+  </div>
+</div>
+
+<!-- Mensaje para usuarios no autenticados -->
+<div class="login-required" id="loginRequired">
+  <h2>🎨 Bienvenido a la Plataforma Cultural</h2>
+  <p>Conecta con espacios culturales únicos y gestiona tus eventos artísticos de forma profesional en nuestra plataforma web sincronizada.</p>
+  <p>Únete a nuestra comunidad de artistas - <strong>es fácil y solo toma 1 minuto</strong>:</p>
+  <ul>
+    <li>🎭 Reservar espacios culturales exclusivos</li>
+    <li>📊 Panel personal con estadísticas en tiempo real</li>
+    <li>🤝 Conectar con otros artistas de la comunidad</li>
+    <li>📅 Gestionar tu calendario artístico completo</li>
+    <li>🏆 Historial de eventos completados</li>
+    <li>🌐 Acceso desde cualquier dispositivo</li>
+  </ul>
+  
+
+</div>
+
+<!-- Contenido principal (oculto hasta login) -->
+<div class="container" id="mainContent" style="display: none;">
+  <div class="main-content">
+    <h1>🎨 Espacios Culturales Disponibles</h1>
+
+    <div id="mapa">
+      <div class="map-background">
+        <!-- Tu imagen real de mapa se muestra como fondo -->
+      </div>
+    </div>
+  </div>
+  
+  <div class="sidebar">
+    <h3>📍 Espacios Culturales</h3>
+    <div class="online-indicator">
+      🌐 <strong>Plataforma Online</strong> - Datos sincronizados en tiempo real
+    </div>
+    <p style="font-size: 12px; color: #666; text-align: center; margin: 0 0 15px 0; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+      Selecciona un espacio disponible (verde) para reservarlo
+    </p>
+    <div id="places-list">
+      <!-- Los lugares se generarán dinámicamente -->
+    </div>
+  </div>
+</div>
+
+<!-- Pantalla de Login -->
+<div class="auth-screen" id="loginScreen">
+  <div class="auth-modal">
+    <h2>🔐 Iniciar Sesión</h2>
+    
+    <div class="auth-error" id="loginError"></div>
+    <div class="auth-success" id="loginSuccess"></div>
+    <div class="auth-loading" id="loginLoading">
+      <div class="loading-spinner"></div>
+      Verificando credenciales...
+    </div>
+    
+    <form class="auth-form" onsubmit="login(event)" id="loginForm">
+      <div class="form-group">
+        <label>📧 Email:</label>
+        <input type="email" id="loginEmail" required placeholder="tu@email.com" 
+               oninput="validateLoginEmail()" autocomplete="email">
+        <div class="form-validation" id="loginEmailValidation"></div>
+      </div>
+      <div class="form-group">
+        <label>🔒 Contraseña:</label>
+        <input type="password" id="loginPassword" required placeholder="Tu contraseña" 
+               oninput="validateLoginPassword()" autocomplete="current-password">
+        <div class="form-validation" id="loginPasswordValidation"></div>
+        <div class="forgot-password">
+          <a href="#" onclick="showForgotPassword()">¿Olvidaste tu contraseña?</a>
+        </div>
+      </div>
+      
+      <div class="remember-me">
+        <input type="checkbox" id="rememberMe">
+        <label for="rememberMe">Recordar mi sesión</label>
+      </div>
+      
+      <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginSubmitBtn">
+        🚀 Iniciar Sesión
+      </button>
+    </form>
+    
+    <div class="auth-switch">
+      ¿No tienes cuenta? <a href="#" onclick="switchToRegister()">Regístrate aquí</a><br>
+      <a href="#" onclick="showPrivacyNotice()" style="color: #667eea; font-size: 12px;">📋 Ver Aviso de Privacidad</a>
+    </div>
+    <div style="margin-top: 20px;">
+      <button class="btn btn-secondary" onclick="hideAuth()">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pantalla de Registro -->
+<div class="auth-screen" id="registerScreen">
+  <div class="auth-modal">
+    <h2>📝 Crear Cuenta</h2>
+    
+    <div class="auth-error" id="registerError"></div>
+    <div class="auth-success" id="registerSuccess"></div>
+    <div class="auth-loading" id="registerLoading">
+      <div class="loading-spinner"></div>
+      Creando tu cuenta...
+    </div>
+    
+    <form class="auth-form" onsubmit="register(event)" id="registerForm">
+      <div class="form-group">
+        <label>👤 Nombre Completo:</label>
+        <input type="text" id="registerName" required placeholder="Tu nombre completo" 
+               oninput="validateRegisterName()" autocomplete="name">
+        <div class="form-validation" id="registerNameValidation"></div>
+      </div>
+      <div class="form-group">
+        <label>📧 Email:</label>
+        <input type="email" id="registerEmail" required placeholder="tu@email.com" 
+               oninput="validateRegisterEmail()" autocomplete="email">
+        <div class="form-validation" id="registerEmailValidation"></div>
+      </div>
+      <div class="form-group">
+        <label>🔒 Contraseña:</label>
+        <input type="password" id="registerPassword" required placeholder="Mínimo 6 caracteres" 
+               minlength="6" oninput="validateRegisterPassword()" autocomplete="new-password">
+        <div class="form-validation" id="registerPasswordValidation"></div>
+        <div class="password-strength" id="passwordStrength" style="display: none;">
+          <div class="strength-bar">
+            <div class="strength-fill" id="strengthFill"></div>
+          </div>
+          <div class="strength-text" id="strengthText"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🔒 Confirmar Contraseña:</label>
+        <input type="password" id="registerPasswordConfirm" required placeholder="Repite tu contraseña" 
+               oninput="validatePasswordConfirm()" autocomplete="new-password">
+        <div class="form-validation" id="registerPasswordConfirmValidation"></div>
+      </div>
+      <div style="text-align: left; margin: 15px 0;">
+        <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.4;">
+          <input type="checkbox" id="privacyAccept" required style="margin-top: 2px; flex-shrink: 0;">
+          <span>
+            He leído y acepto el <a href="#" onclick="showPrivacyNotice()" style="color: #667eea; text-decoration: underline;">📋 Aviso de Privacidad</a> y autorizo el tratamiento de mis datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.
+          </span>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;" id="registerSubmitBtn">
+        🎨 Crear Mi Cuenta
+      </button>
+    </form>
+    <div class="auth-switch">
+      ¿Ya tienes cuenta? <a href="#" onclick="switchToLogin()">Inicia sesión aquí</a><br>
+      <a href="#" onclick="showPrivacyNotice()" style="color: #667eea; font-size: 12px;">📋 Ver Aviso de Privacidad</a>
+    </div>
+    <div style="margin-top: 20px;">
+      <button class="btn btn-secondary" onclick="hideAuth()">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Aviso de Privacidad -->
+<div class="auth-screen" id="privacyScreen">
+  <div class="privacy-modal">
+    <div class="privacy-header">
+      <h2>📋 Aviso de Privacidad</h2>
+      <button class="close-privacy" onclick="hidePrivacyNotice()">❌</button>
+    </div>
+    <div class="privacy-content">
+      <div class="privacy-section">
+        <h3>🏢 Responsable de tus Datos</h3>
+        <p><strong>Cristian Martín Carloz Torres</strong><br>
+        <em>Gestor Cultural y Artístico</em><br><br>
+        📞 Teléfono: 3221151336<br>
+        📧 Email: cristian.carloz@gmail.com<br>
+        🆔 RFC: Disponible bajo solicitud</p>
+      </div>
+
+      <div class="privacy-section">
+        <h3>🎨 Para Artistas - Uso de tu Información</h3>
+        <p>Como artista que usa nuestra plataforma, queremos ser transparentes sobre cómo manejamos tu información personal.</p>
+      </div>
+
+      <div class="privacy-section">
+        <h3>📝 ¿Qué información recopilamos?</h3>
+        <p>Solo pedimos lo esencial para que puedas reservar espacios:</p>
+        <ul>
+          <li>🎭 <strong>Tu nombre artístico/real</strong> - Para identificarte en las reservas</li>
+          <li>📧 <strong>Email</strong> - Para crear tu cuenta y enviarte confirmaciones</li>
+          <li>🎨 <strong>Actividades que realizas</strong> - Para mostrar qué tipo de arte presentas</li>
+          <li>📅 <strong>Historial de reservas</strong> - Para tu panel personal y estadísticas</li>
+        </ul>
+      </div>
+
+      <div class="privacy-section">
+        <h3>🎯 ¿Para qué usamos tu información?</h3>
+        <p><strong>Usos principales (necesarios para el servicio):</strong></p>
+        <ul>
+          <li>✅ Crear y gestionar tu cuenta de artista</li>
+          <li>✅ Procesar tus reservas de espacios culturales</li>
+          <li>✅ Mostrar tu nombre en los espacios que reserves</li>
+          <li>✅ Enviarte confirmaciones y recordatorios</li>
+          <li>✅ Generar tu panel de estadísticas personales</li>
+        </ul>
+        
+        <p><strong>Usos opcionales (solo si aceptas):</strong></p>
+        <div class="consent-options">
+          <label><input type="checkbox" id="marketingConsent"> 📧 Recibir invitaciones a eventos culturales especiales</label><br>
+          <label><input type="checkbox" id="statisticsConsent"> 📊 Ayudar a mejorar la plataforma con estadísticas anónimas</label><br>
+          <label><input type="checkbox" id="eventsConsent"> 🎨 Recibir oportunidades de colaboración con otros artistas</label>
+        </div>
+      </div>
+
+      <div class="privacy-section">
+        <h3>🔒 ¿Compartimos tu información?</h3>
+        <p>Tu información se mantiene segura. Solo la compartimos cuando:</p>
+        <ul>
+          <li>🏛️ <strong>Espacios culturales</strong> necesitan confirmar tu reserva</li>
+          <li>⚖️ <strong>Autoridades</strong> lo requieran por ley</li>
+          <li>🔧 <strong>Proveedores técnicos</strong> mantengan la plataforma (con protección)</li>
+        </ul>
+        <p><strong>NUNCA vendemos tu información a terceros.</strong></p>
+      </div>
+
+      <div class="privacy-section">
+        <h3>🛡️ Tus derechos como artista</h3>
+        <p>Tienes control total sobre tu información:</p>
+        <ul>
+          <li>👀 <strong>Ver</strong> toda la información que tenemos de ti</li>
+          <li>✏️ <strong>Corregir</strong> datos incorrectos</li>
+          <li>🗑️ <strong>Eliminar</strong> tu cuenta y datos</li>
+          <li>🚫 <strong>Oponerte</strong> a ciertos usos</li>
+          <li>📱 <strong>Descargar</strong> tu información</li>
+        </ul>
+        
+        <p><strong>Para ejercer tus derechos:</strong></p>
+        <ul>
+          <li>📧 Escríbenos a: <strong>cristian.carloz@gmail.com</strong></li>
+          <li>📞 Llámanos: <strong>3221151336</strong></li>
+          <li>⏱️ Te respondemos en máximo 20 días hábiles</li>
+          <li>💰 Es completamente gratuito</li>
+        </ul>
+      </div>
+
+      <div class="privacy-section">
+        <h3>🔐 ¿Cómo protegemos tu información?</h3>
+        <ul>
+          <li>🔒 Encriptamos datos sensibles</li>
+          <li>🛡️ Solo personal autorizado accede a la información</li>
+          <li>💾 Hacemos respaldos seguros regularmente</li>
+          <li>🔍 Monitoreamos la seguridad constantemente</li>
+        </ul>
+      </div>
+
+      <div class="privacy-section">
+        <h3>⏰ ¿Cuánto tiempo guardamos tu información?</h3>
+        <ul>
+          <li>📅 Mientras tengas tu cuenta activa</li>
+          <li>🗂️ 2 años después de eliminar tu cuenta (para estadísticas anónimas)</li>
+          <li>⚖️ El tiempo que requiera la ley mexicana</li>
+        </ul>
+      </div>
+
+      <div class="privacy-footer">
+        <p><strong>Responsable:</strong> Cristian Martín Carloz Torres</p>
+        <p><strong>Contacto:</strong> cristian.carloz@gmail.com | 3221151336</p>
+        <p><strong>RFC:</strong> Disponible bajo solicitud</p>
+        <p><strong>Plataforma:</strong> Desplegada en Firebase Hosting</p>
+        <p><strong>Última actualización:</strong> Diciembre 2024</p>
+        <p style="font-size: 12px; margin-top: 15px;"><em>Este aviso cumple con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares de México y aplica tanto para personas físicas como morales que traten datos personales.</em></p>
+      </div>
+    </div>
+    
+    <div class="privacy-actions">
+      <button class="btn btn-primary" onclick="acceptPrivacyAndClose()">✅ Entendido</button>
+      <button class="btn btn-secondary" onclick="hidePrivacyNotice()">❌ Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Formulario de reserva -->
+<div class="overlay" id="overlay"></div>
+<div id="formulario">
+  <h3>🎨 Reservar Lugar</h3>
+  <label>🏛️ Lugar:</label>
+  <input type="text" id="lugar" readonly>
+  
+  <label>👤 Artista (automático):</label>
+  <input type="text" id="artista" readonly>
+  
+  <label>🎭 Actividad: *</label>
+  <input type="text" id="actividad" placeholder="Ej: Exposición de arte, Concierto, Teatro..." required>
+  
+  <label>🕐 Hora de inicio: *</label>
+  <select id="horarioInicio" required onchange="updateDuracionOptions()">
+    <option value="">Selecciona cuándo comienzas</option>
+  </select>
+  
+  <label>⏱️ Duración: *</label>
+  <select id="duracion" required onchange="updateHorarioInfo()" disabled>
+    <option value="">Primero selecciona la hora de inicio</option>
+  </select>
+  
+  <div id="horarioInfo" style="display: none; background: #e3f2fd; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; color: #1565c0; text-align: center;">
+    ⏰ Tu actividad será de <strong id="horarioCompleto"></strong>
+  </div>
+  
+  <label>📝 Notas adicionales:</label>
+  <textarea id="notas" placeholder="Información adicional sobre tu presentación..."></textarea>
+  
+  <div class="button-group">
+    <button onclick="reservarLugar()" style="background: linear-gradient(135deg, #28a745, #20c997); color: white;">🎨 Reservar Lugar</button>
+    <button onclick="cerrarFormulario()" style="background: #f0f0f0; color: #666;">❌ Cancelar</button>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p>🎨 Plataforma Cultural - Desplegada en Firebase Hosting</p>
+  <p>Desarrollado por Cristian Martín Carloz Torres | 📧 cristian.carloz@gmail.com</p>
+  <p>🌐 Acceso web sincronizado en tiempo real</p>
+  <p style="font-size: 11px; opacity: 0.7;">🚀 Versión actualizada - Panel de usuario optimizado</p>
+</div>
+
+<script>
+  // Simulación de base de datos de usuarios (en producción sería Firebase Auth)
+  let users = JSON.parse(localStorage.getItem('demoUsers') || '{}');
+  let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  let placesData = JSON.parse(localStorage.getItem('demoPlaces') || '{}');
+  let userReservations = JSON.parse(localStorage.getItem('userReservations') || '{}');
+  
+  // Variables de validación
+  let validationState = {
+    loginEmail: false,
+    loginPassword: false,
+    registerName: false,
+    registerEmail: false,
+    registerPassword: false,
+    registerPasswordConfirm: false
+  };
+  
+  const PLACE_NAMES = [
+    "Galerías Preciado", "Flor de Córdoba", "Antigua de México", "Casa Pavo Real",
+    "Tlaquejarros", "Casa Luna", "Esquina Contreras Medellín", "Galería JJ Marroquin",
+    "Galería Imperial", "Junto al Chai", "Galería Agustín Parra", "Dos Templos",
+    "Jardín Hidalgo", "Frente al Jardín", "Banorte (arcos)", "Presidencia"
+  ];
+  
+  // Funciones de validación
+  function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  
+  function validatePassword(password) {
+    return {
+      length: password.length >= 6,
+      hasUpper: /[A-Z]/.test(password),
+      hasLower: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+  }
+  
+  function getPasswordStrength(password) {
+    const checks = validatePassword(password);
+    const score = Object.values(checks).filter(Boolean).length;
+    
+    if (score < 2) return { level: 'weak', text: 'Muy débil' };
+    if (score < 3) return { level: 'fair', text: 'Débil' };
+    if (score < 4) return { level: 'good', text: 'Buena' };
+    return { level: 'strong', text: 'Muy fuerte' };
+  }
+  
+  function showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const validation = document.getElementById(fieldId + 'Validation');
+    
+    field.classList.remove('success');
+    field.classList.add('error');
+    validation.textContent = message;
+    validation.className = 'form-validation error';
+    
+    return false;
+  }
+  
+  function showFieldSuccess(fieldId, message = '') {
+    const field = document.getElementById(fieldId);
+    const validation = document.getElementById(fieldId + 'Validation');
+    
+    field.classList.remove('error');
+    field.classList.add('success');
+    validation.textContent = message;
+    validation.className = 'form-validation success';
+    
+    return true;
+  }
+  
+  function clearFieldValidation(fieldId) {
+    const field = document.getElementById(fieldId);
+    const validation = document.getElementById(fieldId + 'Validation');
+    
+    field.classList.remove('error', 'success');
+    validation.textContent = '';
+    validation.className = 'form-validation';
+  }
+  
+  // Validaciones específicas para login
+  function validateLoginEmail() {
+    const email = document.getElementById('loginEmail').value.trim();
+    
+    if (!email) {
+      clearFieldValidation('loginEmail');
+      validationState.loginEmail = false;
+      return false;
+    }
+    
+    if (!validateEmail(email)) {
+      validationState.loginEmail = showFieldError('loginEmail', '❌ Email no válido');
+      return false;
+    }
+    
+    validationState.loginEmail = showFieldSuccess('loginEmail', '✅ Email válido');
+    return true;
+  }
+  
+  function validateLoginPassword() {
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!password) {
+      clearFieldValidation('loginPassword');
+      validationState.loginPassword = false;
+      return false;
+    }
+    
+    if (password.length < 6) {
+      validationState.loginPassword = showFieldError('loginPassword', '❌ Mínimo 6 caracteres');
+      return false;
+    }
+    
+    validationState.loginPassword = showFieldSuccess('loginPassword');
+    return true;
+  }
+  
+  // Validaciones específicas para registro
+  function validateRegisterName() {
+    const name = document.getElementById('registerName').value.trim();
+    
+    if (!name) {
+      clearFieldValidation('registerName');
+      validationState.registerName = false;
+      return false;
+    }
+    
+    if (name.length < 2) {
+      validationState.registerName = showFieldError('registerName', '❌ Nombre muy corto');
+      return false;
+    }
+    
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(name)) {
+      validationState.registerName = showFieldError('registerName', '❌ Solo letras y espacios');
+      return false;
+    }
+    
+    validationState.registerName = showFieldSuccess('registerName', '✅ Nombre válido');
+    return true;
+  }
+  
+  function validateRegisterEmail() {
+    const email = document.getElementById('registerEmail').value.trim();
+    
+    if (!email) {
+      clearFieldValidation('registerEmail');
+      validationState.registerEmail = false;
+      return false;
+    }
+    
+    if (!validateEmail(email)) {
+      validationState.registerEmail = showFieldError('registerEmail', '❌ Email no válido');
+      return false;
+    }
+    
+    if (users[email]) {
+      validationState.registerEmail = showFieldError('registerEmail', '❌ Email ya registrado');
+      return false;
+    }
+    
+    validationState.registerEmail = showFieldSuccess('registerEmail', '✅ Email disponible');
+    return true;
+  }
+  
+  function validateRegisterPassword() {
+    const password = document.getElementById('registerPassword').value;
+    const strengthContainer = document.getElementById('passwordStrength');
+    const strengthFill = document.getElementById('strengthFill');
+    const strengthText = document.getElementById('strengthText');
+    
+    if (!password) {
+      clearFieldValidation('registerPassword');
+      strengthContainer.style.display = 'none';
+      validationState.registerPassword = false;
+      return false;
+    }
+    
+    // Mostrar indicador de fuerza
+    strengthContainer.style.display = 'block';
+    const strength = getPasswordStrength(password);
+    
+    strengthFill.className = `strength-fill strength-${strength.level}`;
+    strengthText.textContent = `Seguridad: ${strength.text}`;
+    
+    const checks = validatePassword(password);
+    
+    if (!checks.length) {
+      validationState.registerPassword = showFieldError('registerPassword', '❌ Mínimo 6 caracteres');
+      return false;
+    }
+    
+    let message = '✅ ';
+    if (strength.level === 'strong') {
+      message += 'Contraseña muy segura';
+    } else if (strength.level === 'good') {
+      message += 'Contraseña segura';
+    } else {
+      message += 'Considera agregar mayúsculas, números o símbolos';
+    }
+    
+    validationState.registerPassword = showFieldSuccess('registerPassword', message);
+    
+    // Revalidar confirmación si existe
+    if (document.getElementById('registerPasswordConfirm').value) {
+      validatePasswordConfirm();
+    }
+    
+    return true;
+  }
+  
+  function validatePasswordConfirm() {
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerPasswordConfirm').value;
+    
+    if (!confirmPassword) {
+      clearFieldValidation('registerPasswordConfirm');
+      validationState.registerPasswordConfirm = false;
+      return false;
+    }
+    
+    if (password !== confirmPassword) {
+      validationState.registerPasswordConfirm = showFieldError('registerPasswordConfirm', '❌ Las contraseñas no coinciden');
+      return false;
+    }
+    
+    validationState.registerPasswordConfirm = showFieldSuccess('registerPasswordConfirm', '✅ Contraseñas coinciden');
+    return true;
+  }
+  
+  // Funciones de UI para autenticación
+  function showAuthLoading(screen, show = true) {
+    const loading = document.getElementById(screen + 'Loading');
+    const form = document.getElementById(screen + 'Form');
+    const submitBtn = document.getElementById(screen + 'SubmitBtn');
+    
+    if (show) {
+      loading.style.display = 'flex';
+      form.style.opacity = '0.7';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Procesando...';
+    } else {
+      loading.style.display = 'none';
+      form.style.opacity = '1';
+      submitBtn.disabled = false;
+      submitBtn.textContent = screen === 'login' ? '🚀 Iniciar Sesión' : '🎨 Crear Mi Cuenta';
+    }
+  }
+  
+  function showAuthError(screen, message) {
+    const errorDiv = document.getElementById(screen + 'Error');
+    const successDiv = document.getElementById(screen + 'Success');
+    
+    successDiv.style.display = 'none';
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    
+    setTimeout(() => {
+      errorDiv.style.display = 'none';
+    }, 5000);
+  }
+  
+  function showAuthSuccess(screen, message) {
+    const errorDiv = document.getElementById(screen + 'Error');
+    const successDiv = document.getElementById(screen + 'Success');
+    
+    errorDiv.style.display = 'none';
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+    
+    setTimeout(() => {
+      successDiv.style.display = 'none';
+    }, 3000);
+  }
+  
+  // Función para mostrar recuperación de contraseña
+  function showForgotPassword() {
+    const email = document.getElementById('loginEmail').value.trim();
+    
+    if (!email) {
+      alert('📧 Por favor ingresa tu email primero para recuperar tu contraseña.');
+      document.getElementById('loginEmail').focus();
+      return;
+    }
+    
+    if (!users[email]) {
+      alert('❌ No existe una cuenta con este email.');
+      return;
+    }
+    
+    // Simulación de envío de email
+    alert(`📧 Se ha enviado un enlace de recuperación a ${email}.\n\n🔒 Por seguridad, este es un sistema demo. En producción se enviaría un email real.`);
+  }
+  
+  // Inicializar la aplicación
+  function initApp() {
+    if (currentUser) {
+      showAuthenticatedView();
+    } else {
+      showGuestView();
+    }
+    generatePlacesList();
+    
+    // Verificar si hay sesión recordada
+    checkRememberedSession();
+  }
+  
+  // Verificar sesión recordada
+  function checkRememberedSession() {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail && !currentUser) {
+      document.getElementById('loginEmail').value = rememberedEmail;
+      document.getElementById('rememberMe').checked = true;
+    }
+  }
+  
+  // Mostrar vista para usuarios autenticados
+  function showAuthenticatedView() {
+    document.getElementById('guestButtons').style.display = 'none';
+    document.getElementById('userInfo').style.display = 'flex';
+    document.getElementById('loginRequired').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'flex';
+    document.getElementById('authHeader').classList.remove('logged-out');
+    
+    // Actualizar información del usuario
+    document.getElementById('userName').textContent = currentUser.name;
+    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+    
+    updateUserStats();
+  }
+  
+  // Mostrar vista para invitados
+  function showGuestView() {
+    document.getElementById('guestButtons').style.display = 'flex';
+    document.getElementById('userInfo').style.display = 'none';
+    document.getElementById('loginRequired').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('userDashboard').style.display = 'none';
+    document.getElementById('authHeader').classList.add('logged-out');
+  }
+  
+  // Mostrar pantalla de login
+  function showLogin() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('registerScreen').style.display = 'none';
+  }
+  
+  // Mostrar pantalla de registro
+  function showRegister() {
+    document.getElementById('registerScreen').style.display = 'flex';
+    document.getElementById('loginScreen').style.display = 'none';
+  }
+  
+  // Ocultar pantallas de autenticación
+  function hideAuth() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('registerScreen').style.display = 'none';
+  }
+  
+  // Cambiar entre login y registro
+  function switchToRegister() {
+    hideAuth();
+    showRegister();
+  }
+  
+  function switchToLogin() {
+    hideAuth();
+    showLogin();
+  }
+  
+  // Mostrar aviso de privacidad
+  function showPrivacyNotice() {
+    document.getElementById('privacyScreen').style.display = 'flex';
+  }
+  
+  // Ocultar aviso de privacidad
+  function hidePrivacyNotice() {
+    document.getElementById('privacyScreen').style.display = 'none';
+  }
+  
+  // Aceptar privacidad y cerrar
+  function acceptPrivacyAndClose() {
+    // Guardar consentimientos opcionales
+    const marketingConsent = document.getElementById('marketingConsent').checked;
+    const statisticsConsent = document.getElementById('statisticsConsent').checked;
+    const eventsConsent = document.getElementById('eventsConsent').checked;
+    
+    // Guardar preferencias en localStorage (en producción sería en base de datos)
+    const consentData = {
+      marketing: marketingConsent,
+      statistics: statisticsConsent,
+      events: eventsConsent,
+      acceptedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem('userConsents', JSON.stringify(consentData));
+    
+    hidePrivacyNotice();
+    
+    // Si venimos del registro, marcar el checkbox como aceptado
+    const privacyCheckbox = document.getElementById('privacyAccept');
+    if (privacyCheckbox) {
+      privacyCheckbox.checked = true;
+    }
+    
+    alert('✅ Aviso de privacidad aceptado. Sus preferencias han sido guardadas.');
+  }
+  
+  // Función de registro mejorada
+  function register(event) {
+    event.preventDefault();
+    
+    // Mostrar loading
+    showAuthLoading('register', true);
+    
+    // Validar todos los campos
+    const nameValid = validateRegisterName();
+    const emailValid = validateRegisterEmail();
+    const passwordValid = validateRegisterPassword();
+    const confirmValid = validatePasswordConfirm();
+    
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+    const privacyAccepted = document.getElementById('privacyAccept').checked;
+    
+    // Simular delay de red
+    setTimeout(() => {
+      showAuthLoading('register', false);
+      
+      // Validaciones finales
+      if (!nameValid || !emailValid || !passwordValid || !confirmValid) {
+        showAuthError('register', '❌ Por favor corrige los errores en el formulario');
+        return;
+      }
+      
+      if (password !== passwordConfirm) {
+        showAuthError('register', '❌ Las contraseñas no coinciden');
+        return;
+      }
+      
+      if (!privacyAccepted) {
+        showAuthError('register', '❌ Debe aceptar el Aviso de Privacidad para continuar');
+        return;
+      }
+      
+      if (users[email]) {
+        showAuthError('register', '❌ Ya existe una cuenta con este email');
+        return;
+      }
+      
+      // Obtener consentimientos guardados
+      const userConsents = JSON.parse(localStorage.getItem('userConsents') || '{}');
+      
+      // Crear usuario
+      users[email] = {
+        name: name,
+        email: email,
+        password: password, // En producción esto estaría encriptado con bcrypt
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        reservations: 0,
+        completedEvents: 0,
+        privacyAccepted: true,
+        privacyAcceptedAt: new Date().toISOString(),
+        consents: userConsents,
+        isActive: true
+      };
+      
+      localStorage.setItem('demoUsers', JSON.stringify(users));
+      
+      // Mostrar éxito
+      showAuthSuccess('register', `🎉 ¡Bienvenido a la Plataforma de Espacios Artísticos! Cuenta creada para ${name}`);
+      
+      // Login automático después de un breve delay
+      setTimeout(() => {
+        currentUser = users[email];
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        hideAuth();
+        showAuthenticatedView();
+        
+        // Limpiar formulario
+        document.getElementById('registerForm').reset();
+        document.getElementById('passwordStrength').style.display = 'none';
+        
+        // Limpiar validaciones
+        Object.keys(validationState).forEach(key => {
+          if (key.startsWith('register')) {
+            clearFieldValidation(key);
+            validationState[key] = false;
+          }
+        });
+      }, 1500);
+      
+    }, 1000);
+  }
+  
+  // Función de login mejorada
+  function login(event) {
+    event.preventDefault();
+    
+    // Mostrar loading
+    showAuthLoading('login', true);
+    
+    // Validar campos
+    const emailValid = validateLoginEmail();
+    const passwordValid = validateLoginPassword();
+    
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    
+    // Simular delay de red
+    setTimeout(() => {
+      showAuthLoading('login', false);
+      
+      if (!emailValid || !passwordValid) {
+        showAuthError('login', '❌ Por favor completa todos los campos correctamente');
+        return;
+      }
+      
+      if (!users[email]) {
+        showAuthError('login', '❌ No existe una cuenta con este email');
+        return;
+      }
+      
+      if (users[email].password !== password) {
+        showAuthError('login', '❌ Contraseña incorrecta');
+        return;
+      }
+      
+      // Verificar si la cuenta está activa
+      if (users[email].isActive === false) {
+        showAuthError('login', '❌ Esta cuenta ha sido desactivada. Contacta al soporte.');
+        return;
+      }
+      
+      // Login exitoso
+      showAuthSuccess('login', `🎉 ¡Bienvenido de vuelta, ${users[email].name}!`);
+      
+      // Actualizar último login
+      users[email].lastLogin = new Date().toISOString();
+      localStorage.setItem('demoUsers', JSON.stringify(users));
+      
+      // Recordar sesión si está marcado
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+      
+      setTimeout(() => {
+        currentUser = users[email];
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        hideAuth();
+        showAuthenticatedView();
+        
+        // Limpiar formulario
+        document.getElementById('loginForm').reset();
+        
+        // Limpiar validaciones
+        Object.keys(validationState).forEach(key => {
+          if (key.startsWith('login')) {
+            clearFieldValidation(key);
+            validationState[key] = false;
+          }
+        });
+        
+        // Restaurar email recordado si aplica
+        if (rememberMe) {
+          document.getElementById('loginEmail').value = email;
+          document.getElementById('rememberMe').checked = true;
+        }
+        
+      }, 1000);
+      
+    }, 800);
+  }
+  
+  // Función de logout
+  function logout() {
+    if (confirm('🚪 ¿Estás seguro de que quieres cerrar sesión?')) {
+      currentUser = null;
+      localStorage.removeItem('currentUser');
+      showGuestView();
+      alert('👋 Has cerrado sesión exitosamente. ¡Gracias por usar la Plataforma de Espacios Artísticos!');
+    }
+  }
+  
+  // Mostrar dashboard del usuario
+  function showUserDashboard() {
+    document.getElementById('userDashboard').style.display = 'block';
+    updateUserStats();
+    updateUserReservationsList();
+  }
+  
+  // Ocultar dashboard del usuario
+  function hideUserDashboard() {
+    document.getElementById('userDashboard').style.display = 'none';
+  }
+  
+  // Actualizar estadísticas del usuario
+  function updateUserStats() {
+    if (!currentUser) return;
+    
+    const userEmail = currentUser.email;
+    const activeReservations = Object.values(placesData).filter(place => 
+      place && place.userEmail === userEmail
+    ).length;
+    
+    const totalReservations = userReservations[userEmail] ? userReservations[userEmail].total || 0 : 0;
+    const completedEvents = userReservations[userEmail] ? userReservations[userEmail].completed || 0 : 0;
+    
+    document.getElementById('userActiveReservations').textContent = activeReservations;
+    document.getElementById('userTotalReservations').textContent = totalReservations;
+    document.getElementById('userCompletedEvents').textContent = completedEvents;
+  }
+  
+  // Actualizar lista de reservas del usuario
+  function updateUserReservationsList() {
+    if (!currentUser) return;
+    
+    const userEmail = currentUser.email;
+    const activeReservations = Object.entries(placesData).filter(([placeNum, place]) => 
+      place && place.userEmail === userEmail
+    );
+    
+    const listContainer = document.getElementById('userReservationsList');
+    
+    if (activeReservations.length === 0) {
+      listContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">No tienes reservas activas</p>';
+      return;
+    }
+    
+    listContainer.innerHTML = activeReservations.map(([placeNum, place]) => `
+      <div class="reservation-item">
+        <strong>📍 ${place.lugar}</strong><br>
+        🎭 ${place.actividad}<br>
+        🕐 ${place.horarioInicio} - ${place.horarioFin}<br>
+        📅 Reservado: ${place.fechaReserva}
+      </div>
+    `).join('');
+  }
+  
+  // Generar lista de lugares
+  function generatePlacesList() {
+    const placesList = document.getElementById('places-list');
+    placesList.innerHTML = '';
+    
+    PLACE_NAMES.forEach((placeName, index) => {
+      const placeNum = (index + 1).toString();
+      const placeData = placesData[placeNum];
+      const isOccupied = placeData && placeData.artista;
+      
+      const placeItem = document.createElement('div');
+      placeItem.className = `place-item ${isOccupied ? 'occupied' : 'available'}`;
+      placeItem.dataset.num = placeNum;
+      
+      let detailsHtml = '';
+      let cancelButtonHtml = '';
+      
+      if (isOccupied) {
+        const duracionText = placeData.duracion === 1 ? '1 hora' : `${placeData.duracion} horas`;
+        detailsHtml = `
+          <div class="place-details occupied">
+            🕐 De ${placeData.horarioInicio} a ${placeData.horarioFin} (${duracionText})
+          </div>
+        `;
+        
+        // Solo mostrar botones si es el usuario actual
+        if (currentUser && placeData.userEmail === currentUser.email) {
+          cancelButtonHtml = `
+            <button class="cancel-btn" onclick="event.stopPropagation(); cancelarReserva('${placeNum}')" title="Cancelar mi reserva">❌</button>
+            <button class="release-btn" onclick="event.stopPropagation(); liberarEspacio('${placeNum}')" title="Completar evento">✅</button>
+          `;
+        }
+      } else {
+        detailsHtml = '<div class="place-details">Disponible para reservar</div>';
+      }
+      
+      const displayName = isOccupied 
+        ? `${placeName} - ${placeData.artista} (${placeData.actividad})`
+        : placeName;
+      
+      placeItem.innerHTML = `
+        <div class="place-number">${placeNum}</div>
+        <div class="place-info">
+          <div class="place-name">${displayName}</div>
+          ${detailsHtml}
+        </div>
+        ${cancelButtonHtml}
+      `;
+      
+      if (!isOccupied && currentUser) {
+        placeItem.addEventListener('click', () => {
+          openFormForPlace(placeNum);
+        });
+      } else if (!isOccupied && !currentUser) {
+        placeItem.addEventListener('click', () => {
+          alert('🔐 Necesitas iniciar sesión para reservar un lugar');
+          showLogin();
+        });
+      }
+      
+      placesList.appendChild(placeItem);
+    });
+  }
+  
+  // Abrir formulario de reserva
+  function openFormForPlace(num) {
+    if (!currentUser) {
+      alert('🔐 Necesitas iniciar sesión para reservar');
+      showLogin();
+      return;
+    }
+    
+    document.getElementById('lugar').value = PLACE_NAMES[parseInt(num) - 1] || `Lugar ${num}`;
+    document.getElementById('artista').value = currentUser.name;
+    
+    // Limpiar otros campos
+    document.getElementById('actividad').value = '';
+    document.getElementById('horarioInicio').value = '';
+    document.getElementById('duracion').value = '';
+    document.getElementById('notas').value = '';
+    
+    generateTimeOptions();
+    
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('formulario').style.display = 'block';
+    
+    window.currentPlaceNum = num;
+  }
+  
+  // Cerrar formulario
+  function cerrarFormulario() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('formulario').style.display = 'none';
+    window.currentPlaceNum = null;
+  }
+  
+  // Reservar lugar
+  function reservarLugar() {
+    if (!currentUser) {
+      alert('🔐 Necesitas iniciar sesión');
+      return;
+    }
+    
+    const lugar = document.getElementById('lugar').value;
+    const actividad = document.getElementById('actividad').value.trim();
+    const horarioInicio = document.getElementById('horarioInicio').value;
+    const duracion = parseInt(document.getElementById('duracion').value);
+    const notas = document.getElementById('notas').value.trim();
+    
+    if (!actividad || !horarioInicio || !duracion) {
+      alert('❌ Por favor completa todos los campos obligatorios');
+      return;
+    }
+    
+    // Calcular hora de fin
+    const [hora, minutos] = horarioInicio.split(':');
+    const horaInicio = parseInt(hora);
+    const minutosInicio = parseInt(minutos);
+    const tiempoInicioMinutos = horaInicio * 60 + minutosInicio;
+    const tiempoFinMinutos = tiempoInicioMinutos + (duracion * 60);
+    const horaFin = Math.floor(tiempoFinMinutos / 60);
+    const minutosFinales = tiempoFinMinutos % 60;
+    
+    let horarioFin;
+    if (horaFin === 24) {
+      horarioFin = '00:00';
+    } else {
+      horarioFin = `${horaFin.toString().padStart(2, '0')}:${minutosFinales.toString().padStart(2, '0')}`;
+    }
+    
+    // Guardar reserva
+    placesData[window.currentPlaceNum] = {
+      lugar: lugar,
+      artista: currentUser.name,
+      userEmail: currentUser.email,
+      actividad: actividad,
+      horarioInicio: horarioInicio,
+      horarioFin: horarioFin,
+      duracion: duracion,
+      notas: notas,
+      fechaReserva: new Date().toLocaleString()
+    };
+    
+    // Actualizar estadísticas del usuario
+    if (!userReservations[currentUser.email]) {
+      userReservations[currentUser.email] = { total: 0, completed: 0 };
+    }
+    userReservations[currentUser.email].total++;
+    
+    localStorage.setItem('demoPlaces', JSON.stringify(placesData));
+    localStorage.setItem('userReservations', JSON.stringify(userReservations));
+    
+    const duracionText = duracion === 1 ? '1 hora' : `${duracion} horas`;
+    alert(`🎨 ¡Espacio cultural reservado exitosamente!\n\n📍 Lugar: ${lugar}\n🎭 Actividad: ${actividad}\n🕐 Horario: ${horarioInicio} - ${horarioFin}\n⏱️ Duración: ${duracionText}\n\n🌐 Tu reserva está sincronizada en la plataforma online`);
+    
+    cerrarFormulario();
+    generatePlacesList();
+    updateUserStats();
+  }
+  
+  // Cancelar reserva
+  function cancelarReserva(placeNum) {
+    if (!currentUser) return;
+    
+    const placeData = placesData[placeNum];
+    if (!placeData || placeData.userEmail !== currentUser.email) {
+      alert('❌ No puedes cancelar esta reserva');
+      return;
+    }
+    
+    if (confirm(`❌ ¿Confirmas que quieres cancelar tu reserva en "${placeData.lugar}"?`)) {
+      delete placesData[placeNum];
+      localStorage.setItem('demoPlaces', JSON.stringify(placesData));
+      
+      alert('✅ Reserva cancelada exitosamente. El espacio está ahora disponible.');
+      generatePlacesList();
+      updateUserStats();
+    }
+  }
+  
+  // Liberar espacio (evento completado)
+  function liberarEspacio(placeNum) {
+    if (!currentUser) return;
+    
+    const placeData = placesData[placeNum];
+    if (!placeData || placeData.userEmail !== currentUser.email) {
+      alert('❌ No puedes liberar este espacio');
+      return;
+    }
+    
+    if (confirm(`✅ ¿Confirmas que tu evento en "${placeData.lugar}" ha terminado exitosamente?`)) {
+      // Actualizar estadísticas
+      if (!userReservations[currentUser.email]) {
+        userReservations[currentUser.email] = { total: 0, completed: 0 };
+      }
+      userReservations[currentUser.email].completed++;
+      
+      delete placesData[placeNum];
+      localStorage.setItem('demoPlaces', JSON.stringify(placesData));
+      localStorage.setItem('userReservations', JSON.stringify(userReservations));
+      
+      alert('🎉 ¡Evento completado exitosamente! El espacio está ahora disponible para otros artistas.');
+      generatePlacesList();
+      updateUserStats();
+    }
+  }
+  
+  // Generar opciones de horario
+  function generateTimeOptions() {
+    const select = document.getElementById('horarioInicio');
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    select.innerHTML = '<option value="">Selecciona cuándo comienzas</option>';
+    
+    let nextHour = currentHour < 7 ? 7 : currentHour + 1;
+    if (nextHour > 23) {
+      select.innerHTML = '<option value="">No hay horarios disponibles para hoy</option>';
+      return;
+    }
+    
+    const timeString = `${nextHour.toString().padStart(2, '0')}:00`;
+    const option = document.createElement('option');
+    option.value = timeString;
+    option.textContent = timeString;
+    select.appendChild(option);
+  }
+  
+  // Actualizar opciones de duración
+  function updateDuracionOptions() {
+    const horarioInicio = document.getElementById('horarioInicio').value;
+    const duracionSelect = document.getElementById('duracion');
+    
+    if (!horarioInicio) {
+      duracionSelect.disabled = true;
+      duracionSelect.innerHTML = '<option value="">Primero selecciona la hora de inicio</option>';
+      return;
+    }
+    
+    duracionSelect.disabled = false;
+    duracionSelect.innerHTML = '<option value="">Selecciona la duración</option>';
+    
+    const [hora] = horarioInicio.split(':');
+    const horaInicio = parseInt(hora);
+    
+    if (horaInicio + 1 <= 24) {
+      duracionSelect.innerHTML += '<option value="1">1 hora</option>';
+    }
+    if (horaInicio + 2 <= 24) {
+      duracionSelect.innerHTML += '<option value="2">2 horas</option>';
+    }
+    if (horaInicio + 3 <= 24) {
+      duracionSelect.innerHTML += '<option value="3">3 horas</option>';
+    }
+  }
+  
+  // Actualizar información del horario
+  function updateHorarioInfo() {
+    const horarioInicio = document.getElementById('horarioInicio').value;
+    const duracion = parseInt(document.getElementById('duracion').value);
+    
+    if (horarioInicio && duracion) {
+      const [hora] = horarioInicio.split(':');
+      const horaInicio = parseInt(hora);
+      const horaFin = horaInicio + duracion;
+      
+      let horarioFin = horaFin === 24 ? '00:00' : `${horaFin.toString().padStart(2, '0')}:00`;
+      
+      document.getElementById('horarioCompleto').textContent = `${horarioInicio} a ${horarioFin}`;
+      document.getElementById('horarioInfo').style.display = 'block';
+    } else {
+      document.getElementById('horarioInfo').style.display = 'none';
+    }
+  }
+  
+  // Cerrar formulario con overlay
+  document.getElementById('overlay').addEventListener('click', cerrarFormulario);
+  
+  // Inicializar aplicación
+  initApp();
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972f687a4116eddf',t:'MTc1NTgzNDY0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
